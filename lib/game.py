@@ -48,6 +48,7 @@ http://tafl.cyningstan.com/
 
 import numpy as np
 import random
+import json
 
 # FLAGS
 repeatCheckOn = True # This tracks the rule disallowing a board state to be revisted 3 times. For running stateless, I turn it off
@@ -117,6 +118,11 @@ winningSquares = [[0,0], [10,0], [0,10], [10,10]] # king wins if they get to thi
 board = np.zeros([11,11], dtype=int) # use this to set up an empty board
 #states = []
 #stateCount ={}
+
+# EXTERNAL FUNCTIONS
+def starting_board():
+    boardAsList = np.ndarray.tolist(startingBoard)
+    return json.dumps(boardAsList)
 
 
 def initializeGame():
