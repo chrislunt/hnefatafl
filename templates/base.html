@@ -1,12 +1,38 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
-   <title>Hnefatafl: Viking Chess</title>
-   <link rel="stylesheet" href="http://stash.compjour.org/assets/css/foundation.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Hnefatafl: Viking Chess</title>
+  <link rel="stylesheet" href="static/style.css">
 </head>
 <body style="width: 880px; margin: auto;">  
-    <h1>Hnefatafl (Viking Chess)</h1>
-    <p>The rebirth of an ancient game</p>
-    <a href="https://www.flickr.com/photos/zokuga/14615349406/">
+    <div class="container">
+    <h1>Hnefatafl</h1>
+    <h2>Viking Chess</h2>
+    <!--
+	<a href="https://www.flickr.com/photos/zokuga/14615349406/">
         <img src="https://live.staticflickr.com/2492/4059153668_d563f5c2e5_b.jpg" alt="it's a nice sunset">
     </a>
+    -->
+      <canvas id="board" width=440 height=440></canvas>
+    <!--
+        <div class="options">
+            <h2>Play as</h2>
+            <div class="attacker">Attacker</div>
+            <div class="king">King</div>
+
+            <div class="play">PLAY</div>
+        </div>
+        <div class="gameover hide"></div>
+    </div>
+
+    <script src="static/game.js"></script>
+    <script src="static/options.js"></script>
+-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="static/hnef.js"></script>
+
 </body>
+</html>
