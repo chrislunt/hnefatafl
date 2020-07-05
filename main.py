@@ -15,6 +15,9 @@
 # [START gae_python38_app]
 from flask import Flask
 from flask import render_template
+from flask import request
+from flask import make_response # for the 404 page, not yet done
+from flask import abort
 
 # If `entrypoint` is not defined in app.yaml, App Engine will look for an app
 # called `app` in `main.py`.
@@ -30,6 +33,16 @@ def hello():
 def starting_board():
     # return the standard board
     board = game.starting_board()
+    return board
+
+
+@app.route('/move', methods = ['POST'])
+def move():
+    if not request.json:
+        abort(400)
+    app.logger.info(request.json)
+    board = game.move(request.json['player'], request.json['board'])
+
     return board
 
 if __name__ == '__main__':

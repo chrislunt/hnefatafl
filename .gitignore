@@ -1,0 +1,7 @@
+.gcloudignore
+__pycache__/
+cheatsheet
+lib/__pycache__/
+main_test.py
+requirements-test.txt
+static/options.js

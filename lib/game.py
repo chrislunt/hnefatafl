@@ -4,6 +4,7 @@
 # Shield wall
 # Edge fort (victory condition)
 # UI
+# Can't capture against the middle if the king is there
 
 """
  At this point, I have implemented Fetlar rules: no shieldwall capture, only exit for win
@@ -125,6 +126,17 @@ def starting_board():
     return json.dumps(boardAsList)
 
 
+def move(player, newBoard):
+    global board
+    npNewBoard = np.asarray(newBoard)
+    board = npNewBoard
+    global attTurn 
+    attTurn = not player
+    smartMove()
+    boardAsList = np.ndarray.tolist(board)
+    return json.dumps(boardAsList)
+
+# INTERNAL FUNCTIONS
 def initializeGame():
     global board
     np.copyto(board, startingBoard)
@@ -792,11 +804,11 @@ def runTests():
 ##########
 
 #runTests()
-
+initializeGame()
+"""
 totalMoves = 0
 winTypes = {}
 for n in range(0,100):
-    initializeGame()
 
     i = 0 # safety stop
     while (not isVictory()):
@@ -827,3 +839,4 @@ for n in range(0,100):
 print('average moves per game: ', int(totalMoves/n))
 for winType in winTypes:
     print(gameOverMessage[winType] + ': ' + str(winTypes[winType]))
+"""
