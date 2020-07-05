@@ -5,6 +5,9 @@
 # Edge fort (victory condition)
 # UI
 # Can't capture against the middle if the king is there
+# Are captures being priorized?
+# Restructuring
+# Reinforcement learning
 
 """
  At this point, I have implemented Fetlar rules: no shieldwall capture, only exit for win
@@ -342,7 +345,7 @@ def isVictory():
                     and (enclosed == NOT_ENCLOSED)):
                     return False # if we do other checks after this, we need to double break
                 exposed[r, c] = exposed[r, c] or enclosed
-    gameOver = ATTACKERS_ENCLOSED
+    gameOver = DEFENDERS_ENCLOSED
     return gameOver
 
 ## Keep a record of states of the board, to prevent loops
@@ -378,47 +381,31 @@ def inBounds(row, col):
 def captureByDirection(axis, direction, row, col, execute = True):
     global gameOver
     # is there an opponent's piece adjacent (att = 1, def = 2, king = 3)
-    if (axis == ROW):
-        row += direction
-    else:
-        col += direction
-    if (not inBounds(row, col)):
-        return False
-    capturePieceType = board[row, col]
-    # check for a opposing peice
-    if (attTurn and (capturePieceType >= DEFENDER)
-        or (not attTurn and (capturePieceType == ATTACKER))):
-        # check for the other side of the capture
-        captureRow = row
-        captureCol = col
+    if (isOpponent(axis, direction, [row, col])):
         if (axis == ROW):
             row += direction
         else:
             col += direction
-        if (not inBounds(row, col)):
-            return False
-        opposingPieceType = board[row, col]
-        if (attTurn and (opposingPieceType == ATTACKER)
-            or (not attTurn and (opposingPieceType >= DEFENDER)) # you can capture with the king
-            or ([row, col] in restricted)): # you can capture against restricted squares
+        captureRow = row
+        captureCol = col
+        capturePieceType = board[row, col]
+
+        # check for the other side of the capture
+        if (isAlly(axis, direction, [row, col])):
             # this is capture for a normal piece
-            # but check for a king
+            # but first additional checks for a king capture
             if (attTurn and (capturePieceType == KING)):
-                # now we need to check on the axis (the if below is ugly, perhaps I should reconsider my data structure)
+                # now we need to check on the other axis
                 if (((axis == ROW)
-                     and ((captureCol <= 9) and (board[captureRow, captureCol + 1] == ATTACKER) 
-                         or ([captureRow, captureCol + 1] in restricted))
-                        and ((captureCol >= 1) and (board[captureRow, captureCol - 1] == ATTACKER) 
-                         or ([captureRow, captureCol - 1] in restricted))
-                        )
+                     and allyRight([row, col])
+                     and allyLeft([row,col])
+                     )
                     or ((axis == COL)
-                        and ((captureRow <= 9) and (board[captureRow + 1, captureCol] == ATTACKER) 
-                             or ([captureRow + 1, captureCol] in restricted))
-                        and ((captureRow >= 1) and (board[captureRow - 1, captureCol] == ATTACKER) 
-                         or ([captureRow - 1, captureCol] in restricted))
+                        and allyAbove([row, col])
+                        and allyBelow([row, col])
                         )
                     ):
-                    if (execute):
+                    if (execute):  
                         gameOver = KING_CAPTURED
                         board[captureRow, captureCol] = DEAD_KING
                     return 4
@@ -587,6 +574,37 @@ def opponentRight(position):
 def opponentLeft(position):
     return isOpponent(COL, -1, position)
 
+def allyAbove(position):
+    return isAlly(ROW, -1, position)
+
+def allyBelow(position):
+    return isAlly(ROW, 1, position)
+
+def allyRight(position):
+    return isAlly(COL, 1, position)
+
+def allyLeft(position):
+    return isAlly(COL, -1, position)
+
+def isAlly(axis, direction, position):
+    row, col = position
+    if (axis == ROW):
+        row += direction
+    else:
+        col += direction
+    if (not inBounds(row, col)):
+        return False
+    if ((board[row, col] == 0)
+        and [row, col] in restricted):
+        return True
+    if (attTurn 
+        and board[row, col] == ATTACKER):
+        return True 
+    elif (not attTurn
+        and (board[row, col] >= DEFENDER)):
+        return True
+    return False
+
 def isOpponent(axis, direction, position):
     row, col = position
     if (axis == ROW):
@@ -595,12 +613,13 @@ def isOpponent(axis, direction, position):
         col += direction
     if (not inBounds(row, col)):
         return False
-    if ([row, col] in restricted):
-        return True
-    if ((attTurn)
+#    if ([row, col] in restricted):
+#        return True
+    if (attTurn
         and (board[row, col] >= DEFENDER)):
         return True
-    elif (board[row, col] == ATTACKER):
+    elif (not attTurn
+          and board[row, col] == ATTACKER):
         return True
     return False
 
@@ -641,7 +660,8 @@ def smartMove():
                 score += 1
                 
             # points for clogging the corners
-            score += (abs(endRow - 5) + abs(endCol -5))/10
+            # I took this out for now, because it makes those pieces easy to capture
+#            score += (abs(endRow - 5) + abs(endCol -5))/10
 
         else:
             myPieceType = board[startRow, startCol]
@@ -698,8 +718,9 @@ def runTests():
         [0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0]
         ])
     if(not isVictory()):
-        exit('Failed Victory check 2')
+        exit('FAIL')
 
+    initializeGame()
     # This crazy board is an extreme example of an INCOMPLETE enclosure
     print("test enclosure detection negative")
     board = np.array([
@@ -716,7 +737,7 @@ def runTests():
         [0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0]
         ])
     if(isVictory()):
-        exit('Failed Victory check 1')
+        exit('FAIL')
 
     ### FORCE A TEST OF REPEAT
     global repeatCheckOn
@@ -761,6 +782,7 @@ def runTests():
     if (not gameOver):
         exit("FAIL")
 
+    initializeGame()
     board = np.zeros([11,11], dtype=int) # use this to set up an empty board
 
     board[5,0] = 3 # set up a test board with only a king
@@ -798,6 +820,43 @@ def runTests():
 
     exit("All tests PASS")
 
+
+def runMultipleGames():
+    global attTurn
+    totalMoves = 0
+    winTypes = {}
+    for n in range(0,100):
+        
+        i = 0 # safety stop
+        while (not isVictory()):
+            i += 1
+            if (i >= 1000):
+                break
+            # randomMove()
+            smartMove()
+            totalMoves += 1
+            attTurn = not attTurn # swicth to the other player's turn
+
+    #print('Game over: ' + gameOverMessage[gameOver])
+    # print(states)
+    #count = len(states)
+        if (gameOver == 0):
+            print('woop', i)
+            print(board)
+            exit('sld')
+        if (gameOver not in winTypes):
+            winTypes[gameOver] = 1
+        else:
+            winTypes[gameOver] += 1
+
+        initializeGame()
+            #    print('moves:', count)
+            #    print(states[count - 1])
+            #    print("----------------------------")
+                    
+    print('average moves per game: ', int(totalMoves/n))
+    for winType in winTypes:
+        print(gameOverMessage[winType] + ': ' + str(winTypes[winType]))
         
 ##########
 ## MAIN ##
@@ -805,38 +864,5 @@ def runTests():
 
 #runTests()
 initializeGame()
-"""
-totalMoves = 0
-winTypes = {}
-for n in range(0,100):
+#runMultipleGames()
 
-    i = 0 # safety stop
-    while (not isVictory()):
-        i += 1
-        if (i >= 1000):
-            break
-        # randomMove()
-        smartMove()
-        totalMoves += 1
-        attTurn = not attTurn # swicth to the other player's turn
-
-    #print('Game over: ' + gameOverMessage[gameOver])
-    # print(states)
-    #count = len(states)
-    if (gameOver == 0):
-        print('woop', i)
-        print(board)
-        exit('sld')
-    if (gameOver not in winTypes):
-        winTypes[gameOver] = 1
-    else:
-        winTypes[gameOver] += 1
-
-#    print('moves:', count)
-#    print(states[count - 1])
-#    print("----------------------------")
-
-print('average moves per game: ', int(totalMoves/n))
-for winType in winTypes:
-    print(gameOverMessage[winType] + ': ' + str(winTypes[winType]))
-"""

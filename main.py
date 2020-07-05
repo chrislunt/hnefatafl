@@ -40,7 +40,7 @@ def starting_board():
 def move():
     if not request.json:
         abort(400)
-    app.logger.info(request.json)
+#    app.logger.info(request.json)
     board = game.move(request.json['player'], request.json['board'])
 
     return board

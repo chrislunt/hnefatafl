@@ -67,7 +67,6 @@ function init(ctx){
         type: 'GET',
 	dataType: 'json',
 	success: function(result) {
-  	    console.log(result);
 	    myBoard = result;
 	    placePieces(ctx, result);
 	    },
@@ -94,7 +93,6 @@ document.getElementById('board').addEventListener('click', function() {
 	dataType: 'json',
 	contentType: 'application/json',
 	success: function(result) {
-	    console.log(result);
 	    myBoard = result;
 	    placePieces(ctx, result);
 	},
