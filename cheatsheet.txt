@@ -1,0 +1,7 @@
+python main.py # to run locally
+get add
+get commit -m'message'
+git push -u origin master
+python3 -m venv env
+source env/bin/activate
+gcloud app deploy # deploy on service
